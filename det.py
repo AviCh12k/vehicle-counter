@@ -503,12 +503,15 @@ def car_dec(active):
 
 for i in range(0,4):                       #to be while for infinite loop
     print("\nLight " + str(active) + " is green for " + str(time[active]) + "seconds", end="\n")
+    for j in range(0,4):
+        if(active!=j):
+            print("Light " + str(j) + " is red", end="\n")
     while time[active]>0:
         car_dec(active)
         time_dec(active)
         print("\r" + "Time Left: "+ str(time[active]) + " Old Cars Left: "+ str(old_car[active]), end = "")
         tm.sleep(1)
-    print("\nLight " + str(active) + " is red for " + str(time[active]) + "seconds", end="\n")
+    print("\nLight " + str(active) + " is red", end="\n")
     if active == 3:
         active = 0
     else:

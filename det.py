@@ -9,7 +9,7 @@ import os
 loc = os.path.abspath('')
 
 # Video source
-inputFile = loc+'/inputs/625_201707211410.mp4'
+inputFile = loc+'/inputs/625_201709211001.mp4'
 
 # for testing
 tracked_blobs = []
@@ -41,9 +41,9 @@ class Vehicle(object):
 
     def draw(self, output_image):
         for point in self.positions:
-            cv2.circle(output_image, point, 2, (0, 255, 0), -1)
+            cv2.circle(output_image, point, 2, (0, 255, 255), 1)
             cv2.polylines(output_image, [np.int32(self.positions)]
-                , False, (0, 255, 0), 2)
+                , False, (50,205,50), 1)
 
 # ============================================================================
 
@@ -201,7 +201,7 @@ class VehicleCounter(object):
             # cv2.putText(output_image, ("LH Lane: %02d" % self.vehicle_LHS), (12, 56)
             #     , cv2.FONT_HERSHEY_PLAIN, 1.2, (127,255, 255), 2)
             # RHS
-            cv2.putText(output_image, ("RH Lane: %02d" % self.vehicle_RHS), (216, 56)
+            cv2.putText(output_image, ("Right Side: %02d" % self.vehicle_RHS), (200, 80)
                 , cv2.FONT_HERSHEY_PLAIN, 1.2, (127, 255, 255), 2)
 
         # Remove vehicles that have not been seen long enough
@@ -410,7 +410,7 @@ while ret:
                         )
             tracked_conts.append(c)
             
-            cv2.rectangle(frame, (x, y), (x + w - 1, y + h - 1), (0, 255, 255), 2)
+            cv2.rectangle(frame, (x, y), (x + w - 1, y + h - 1), (50,205,50), 2)
             cv2.circle(frame, centroid, 2, (255, 0, 255), -1)
         
         if car_counter is None:
@@ -445,7 +445,7 @@ while ret:
         cv2.imshow("preview", frame)
         # out.write(frame)
         
-        if cv2.waitKey(1)==27:
+        if cv2.waitKey(100)==27:
             break
     else:
         break

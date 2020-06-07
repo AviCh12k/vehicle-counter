@@ -12,7 +12,7 @@ import re
 
 
 loc = os.path.abspath('')
-src_file = loc+'/inputs/625_201709042126.mp4'
+src_file = loc+'/inputs/625_201708101101.mp4'
 tracked_blobs = []
 tracked_conts = []
 ret_array = []
@@ -196,12 +196,15 @@ print(frame_w)
 
 
 mask = np.zeros((frame_h,frame_w), np.uint8)
-mask[:,:] = 255
-mask[:100, :] = 0
-mask[230:, 160:190] = 0
-mask[170:230,170:190] = 0
-mask[140:170,176:190] = 0 
-mask[100:140,176:182] = 0
+mask[100:,182:] = 255
+# mask[:,:] = 255
+# mask[:100, :] = 0
+# mask[230:, 160:190] = 0
+# mask[170:230,170:190] = 0
+# mask[140:170,176:190] = 0 
+# mask[:,:] = 255
+# mask[100:140,176:182] = 0
+print(mask)
 THRESHOLD_SENSITIVITY = 40
 ret_array.append(THRESHOLD_SENSITIVITY)
 CONTOUR_WIDTH = 21
@@ -227,6 +230,24 @@ while ret:
     frame_no = frame_no + 1
     
     if ret and frame_no < total_frames:
+
+        rgb_planes = cv2.split(frame)
+
+        result_planes = []
+        result_norm_planes = []
+        for plane in rgb_planes:
+            dilated_img = cv2.dilate(plane, np.ones((7,7), np.uint8))
+            bg_img = cv2.medianBlur(dilated_img, 21)
+            diff_img = 255 - cv2.absdiff(plane, bg_img)
+            norm_img = cv2.normalize(diff_img,None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+            result_planes.append(diff_img)
+            result_norm_planes.append(norm_img)
+
+        result = cv2.merge(result_planes)
+        result_norm = cv2.merge(result_norm_planes) 
+        cv2.imshow("result", result)  
+        cv2.imshow("result_norm",result_norm)  
+
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         cv2.imshow("HSV",frame)
         (_,_,grayFrame) = cv2.split(frame)
@@ -251,8 +272,8 @@ while ret:
             grayOp = cv2.cvtColor(cv2.convertScaleAbs(avg), cv2.COLOR_GRAY2BGR)
             cv2.imshow("grayOpV",grayOp)
             backOut = loc+"/backgrounds/"+camera+"_bg.jpg"
-            cv2.imshow("backOut", backOut)
-            cv2.imwrite(backOut, grayOp)
+            # cv2.imwrite("backOut", backOut)
+            # cv2.imwrite("grayOp", grayOp)
 
         differenceFrame = cv2.absdiff(grayFrame, cv2.convertScaleAbs(avg))
         cv2.imshow("absdiff", differenceFrame)
@@ -341,7 +362,7 @@ while ret:
         
         cv2.imshow("preview", frame)
         
-        if cv2.waitKey(100)==27:
+        if cv2.waitKey(10)==27:
             break
     else:
         break

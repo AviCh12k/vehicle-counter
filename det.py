@@ -8,7 +8,7 @@ import math
 import re
 import pandas as pd
 import matplotlib as plt
-
+import random
 
 
 
@@ -375,14 +375,6 @@ while ret:
 # print(tracked_conts)
 cv2.destroyAllWindows()
 cap.release()
-
-
-
-import random
-import numpy as np
-import time as tm
-import math
-import matplotlib.pyplot as plt
 
 
 total = np.zeros(8)

@@ -6,7 +6,8 @@ import time as tm
 import logging
 import math
 import re
-
+import pandas as pd
+import matplotlib as plt
 
 
 
@@ -225,6 +226,8 @@ total_cars = 0
 start_time = tm.time()
 ret, frame = cap.read()
 
+black = np.zeros((frame_h,frame_w))
+
 while ret:    
     ret, frame = cap.read()
     frame_no = frame_no + 1
@@ -245,14 +248,14 @@ while ret:
 
         result = cv2.merge(result_planes)
         result_norm = cv2.merge(result_norm_planes) 
-        cv2.imshow("result", result)  
-        cv2.imshow("result_norm",result_norm)  
+        # cv2.imshow("result", result)  
+        # cv2.imshow("result_norm",result_norm)  
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        cv2.imshow("HSV",frame)
+        # cv2.imshow("HSV",frame)
         (_,_,grayFrame) = cv2.split(frame)
         grayFrame = cv2.bilateralFilter(grayFrame, 11, 21, 21)
-        cv2.imshow("bilateral filter",grayFrame)
+        # cv2.imshow("bilateral filter",grayFrame)
         if avg is None:
             avg = grayFrame.copy().astype("float")
             continue
@@ -272,15 +275,14 @@ while ret:
             grayOp = cv2.cvtColor(cv2.convertScaleAbs(avg), cv2.COLOR_GRAY2BGR)
             cv2.imshow("grayOpV",grayOp)
             backOut = loc+"/backgrounds/"+camera+"_bg.jpg"
-            # cv2.imwrite("backOut", backOut)
-            # cv2.imwrite("grayOp", grayOp)
-
-        differenceFrame = cv2.absdiff(grayFrame, cv2.convertScaleAbs(avg))
-        cv2.imshow("absdiff", differenceFrame)
-        differenceFrame = cv2.GaussianBlur(differenceFrame, (5, 5), 0)
+        differenceFrame = cv2.GaussianBlur(grayFrame, (5, 5), 0)
         cv2.imshow("difference", differenceFrame)
+        differenceFrame = cv2.absdiff(grayFrame, cv2.convertScaleAbs(avg))
+        # cv2.imshow("absdiff", differenceFrame)
+        differenceFrame = cv2.GaussianBlur(differenceFrame, (5, 5), 0)
+        # cv2.imshow("difference", differenceFrame)
         diffout = cv2.cvtColor(differenceFrame, cv2.COLOR_GRAY2BGR)
-        cv2.imshow("diffout", diffout)
+        # cv2.imshow("diffout", diffout)
         retval, _ = cv2.threshold(differenceFrame, 0, 255,
                                   cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         ret_array.append(retval)
@@ -289,26 +291,28 @@ while ret:
             ret2, thresholdImage = cv2.threshold(differenceFrame, 
                                                  int(np.mean(ret_array)*0.9),
                                                  255, cv2.THRESH_BINARY)
+            cv2.imshow("1st tthresh",thresholdImage)
         else:
             ret2, thresholdImage = cv2.threshold(differenceFrame, 
                                              int(np.mean(ret_array[-10:-1])*0.9),
                                              255, cv2.THRESH_BINARY)
+            cv2.imshow("1st tthresh",thresholdImage)
         
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (SMOOTH, SMOOTH))
         # Fill any small holes
         thresholdImage = cv2.morphologyEx(thresholdImage, cv2.MORPH_CLOSE, kernel)
-        cv2.imshow("small holes",thresholdImage)
+        # cv2.imshow("small holes",thresholdImage)
         # Remove noise
         thresholdImage = cv2.morphologyEx(thresholdImage, cv2.MORPH_OPEN, kernel)
-        cv2.imshow("remove noise",thresholdImage)
+        # cv2.imshow("remove noise",thresholdImage)
         # Dilate to merge adjacent blobs
         thresholdImage = cv2.dilate(thresholdImage, kernel, iterations = 2)
-        cv2.imshow("merge blobs",thresholdImage)
+        # cv2.imshow("merge blobs",thresholdImage)
         # apply mask
         thresholdImage = cv2.bitwise_and(thresholdImage, thresholdImage, mask = mask)
-        cv2.imshow("masking", thresholdImage)
+        # cv2.imshow("masking", thresholdImage)
         threshout = cv2.cvtColor(thresholdImage, cv2.COLOR_GRAY2BGR)
-        cv2.imshow("threshout", threshout)
+        # cv2.imshow("threshout", threshout)
 
         contours, hierarchy = cv2.findContours(thresholdImage, 
                                                   cv2.RETR_EXTERNAL, 
@@ -344,7 +348,7 @@ while ret:
             print("Creating vehicle counter...")
             car_counter = Counter(frame.shape[:2], 2*frame.shape[0] / 3)
         car_counter.update_count(blobs, frame)
-        current_count = car_counter.vehicle_RHS + car_counter.vehicle_LHS
+        current_count = car_counter.vehicle_RHS
 
         elapsed_time = tm.time()-start_time
         # print("-- %s seconds --" % round(elapsed_time,2))
@@ -362,16 +366,23 @@ while ret:
         
         cv2.imshow("preview", frame)
         
-        if cv2.waitKey(10)==27:
+        if cv2.waitKey(1)==27:
             break
     else:
         break
-print(car_counter.vehicle_RHS)
+# print(car_counter.vehicle_RHS)
+# print(tracked_blobs)
+# print(tracked_conts)
 cv2.destroyAllWindows()
 cap.release()
 
 
 
+import random
+import numpy as np
+import time as tm
+import math
+import matplotlib.pyplot as plt
 
 
 total = np.zeros(8)
@@ -396,10 +407,23 @@ def time_cal(total):
 #     total[i] = int(input("Enter initial no of vehicle in " + str(i) + " light: "))
 #     if(total[i]>200):
 #         total[i] = 200
-total[0] = 180
-total[1] = 120
-total[2] = 80
-total[3] = 40
+total[0] = random.randint(25,200)
+print("Traffic in Road[0] is: " + str(total[0]))
+total[1] = random.randint(25,200)
+print("Traffic in Road[1] is: " + str(total[1]))
+total[2] = random.randint(25,200)
+print("Traffic in Road[2] is: " + str(total[2]))
+total[3] = random.randint(25,200)
+print("Traffic in Road[3] is: " + str(total[3]))
+
+def is_heavy(i):
+    if total[i] > 140:
+        return "heavy traffic"
+    elif total[i] > 70:
+        return "medium traffic"
+    else:
+        return "low traffic"
+
 time_cal(total)
 
 old_car = total.copy()
@@ -409,15 +433,18 @@ def time_dec(active):
 
 
 def car_dec(active):
-    if total[i] > 140:
+    if total[active] > 140:
         old_car[active] -= 25          
-    elif total[i] > 70:
+    elif total[active] > 70:
         old_car[active] -= 20        
     else:
         old_car[active] -= 15
 
+dynamic = time[0:4].copy()
+
 for i in range(0,4):                       #to be while for infinite loop
-    print("\nLight " + str(active) + " is green for " + str(time[active]) + "seconds", end="\n")
+    print("\nRoad " + str(active) + " has " + is_heavy(active), end="\n")
+    print("Light " + str(active) + " is green for " + str(time[active]) + "seconds", end="\n")
     for j in range(0,4):
         if(active!=j):
             print("Light " + str(j) + " is red", end="\n")
@@ -431,5 +458,54 @@ for i in range(0,4):                       #to be while for infinite loop
         active = 0
     else:
         active += 1
+old_car = 0
+def insert_data_labels(bars):
+	for bar in bars:
+		bar_height = bar.get_height()
+		ax.annotate('{0:.0f}'.format(bar.get_height()),
+			xy=(bar.get_x() + bar.get_width() / 2, bar_height),
+			xytext=(0, 3),
+			textcoords='offset points',
+			ha='center',
+			va='bottom'
+		)
+static = [6,6,6,6]
+roads = ["Road 0","Road 1","Road 2","Road 3"]
+indx = np.arange(4)
+bar = 0.25
+fig, ax = plt.subplots()
+st = ax.bar(indx-bar/2, static, bar, label = "Static timing")
+dy = ax.bar(indx+bar/2, dynamic, bar, label = "Dynamic timing")
+ax.set_xticks(indx + bar / 2)
+ax.set_xticklabels(roads)
+ax.legend()
+
+insert_data_labels(st)
+insert_data_labels(dy)
+
+plt.show()
+
+remaining = []
+for i in range(0,4):
+    if total[i] > 140:
+        remaining.append(total[i]%150)           
+    elif total[i] > 70:
+        remaining.append(total[i]%120)       
+    else:
+        remaining.append(total[i]%90)
+print("After one complete cycle\n")
+indx = np.arange(4)
+bar = 0.25
+fig, ax = plt.subplots()
+st = ax.bar(indx-bar/2, remaining, bar, label = "Static timing")
+dy = ax.bar(indx+bar/2, old_car, bar, label = "Dynamic timing")
+ax.set_xticks(indx + bar / 2)
+ax.set_xticklabels(roads)
+ax.legend()
+
+insert_data_labels(st)
+insert_data_labels(dy)
+
+plt.show()
 
 

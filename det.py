@@ -7,7 +7,7 @@ import logging
 import math
 import re
 import pandas as pd
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import random
 
 
@@ -470,6 +470,7 @@ st = ax.bar(indx-bar/2, static, bar, label = "Static timing")
 dy = ax.bar(indx+bar/2, dynamic, bar, label = "Dynamic timing")
 ax.set_xticks(indx + bar / 2)
 ax.set_xticklabels(roads)
+ax.set_ylabel('Time of green light')
 ax.legend()
 
 insert_data_labels(st)
@@ -479,20 +480,22 @@ plt.show()
 
 remaining = []
 for i in range(0,4):
-    if total[i] > 140:
+    if total[i] > 150:
         remaining.append(total[i]%150)           
-    elif total[i] > 70:
+    elif total[i] > 120 and total[i]  < 140:
         remaining.append(total[i]%120)       
     else:
-        remaining.append(total[i]%90)
+        remaining.append(0)
 print("After one complete cycle\n")
 indx = np.arange(4)
 bar = 0.25
 fig, ax = plt.subplots()
 st = ax.bar(indx-bar/2, remaining, bar, label = "Static timing")
 dy = ax.bar(indx+bar/2, old_car, bar, label = "Dynamic timing")
+ax.set_title("Vehicles Remaining After 1st Cycle")
 ax.set_xticks(indx + bar / 2)
 ax.set_xticklabels(roads)
+ax.set_ylabel('Number of cars left')
 ax.legend()
 
 insert_data_labels(st)

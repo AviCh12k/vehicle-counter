@@ -104,7 +104,6 @@ insert_data_labels(st)
 insert_data_labels(dy)
 
 plt.show()
-
 remaining = []
 for i in range(0,4):
     if total[i] > 140:

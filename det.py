@@ -396,6 +396,8 @@ def car_dec(active):
         old_car[active] -= 20        
     else:
         old_car[active] -= 15
+    if old_car[active] < 0:
+        old_car[active] = 0
 
 dynamic = time[0:4].copy()
 

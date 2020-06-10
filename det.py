@@ -14,8 +14,6 @@ import random
 
 loc = os.path.abspath('')
 src_file = loc+'/inputs/625_201708101101.mp4'
-tracked_blobs = []
-tracked_conts = []
 ret_array = []
 
 
@@ -108,20 +106,7 @@ class Counter(object):
                 Deviation = abs(last_vector[1]-vector[1])
             else:
                 Deviation = 0
-                
-            detected_blob = dict(
-                    number = vehicle.number,
-                    center_x = centroid[0],
-                    center_y = centroid[1],
-                    vector_x = vector[0],
-                    vector_y = vector[1],
-                    dx = vector[2],
-                    dy = vector[3],
-                    counted = vehicle.counted,
-                    frame_number = frame_no,
-                    angle_dev = Deviation
-                    )    
-            tracked_blobs.append(detected_blob)
+
             if self.is_valid(vector, Deviation):    
                 vehicle.add_position(centroid)
                 vehicle.frames_seen += 1
@@ -131,14 +116,13 @@ class Counter(object):
                     vehicle.direc = -1
                 return i     
         vehicle.init_fr += 1
-        return None
 
 
     def update_count(self, matches, final_fr = None):
         for vehicle in self.vehicles:
             i = self.update_vehicle(vehicle, matches)
             if i is not None:
-                del matches[i]
+                del matches[i]                  #delete previous contours
         for match in matches:
             _, centroid = match
             new_vehicle = Vehicle(self.next_number, centroid)
@@ -234,6 +218,9 @@ while ret:
     
     if ret and frame_no < total_frames:
 
+
+# Shadow removal
+
         rgb_planes = cv2.split(frame)
 
         result_planes = []
@@ -251,38 +238,26 @@ while ret:
         # cv2.imshow("result", result)  
         # cv2.imshow("result_norm",result_norm)  
 
+# conversion to grayscale using bilateral filter
+
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         # cv2.imshow("HSV",frame)
         (_,_,grayFrame) = cv2.split(frame)
+        # cv2.imshow("Value plane",grayFrame)
         grayFrame = cv2.bilateralFilter(grayFrame, 11, 21, 21)
         # cv2.imshow("bilateral filter",grayFrame)
-        if avg is None:
-            avg = grayFrame.copy().astype("float")
-            continue
         
-        # Build the average scene image by accumulating this frame
-        # with the existing average.
-        if frame_no < 10:
-            def_wt = INITIAL_AVERAGE_WEIGHT
-        else:
-            def_wt = DEFAULT_AVERAGE_WEIGHT
-            
-        cv2.accumulateWeighted(grayFrame, avg, def_wt)
+# Foreground extraction
         
-        # export averaged background for use in next video feed run
-        #if frame_no > int(total_frames * 0.975):
-        if frame_no > int(200):
-            grayOp = cv2.cvtColor(cv2.convertScaleAbs(avg), cv2.COLOR_GRAY2BGR)
-            cv2.imshow("grayOpV",grayOp)
-            backOut = loc+"/backgrounds/"+camera+"_bg.jpg"
         differenceFrame = cv2.GaussianBlur(grayFrame, (5, 5), 0)
         cv2.imshow("difference", differenceFrame)
         differenceFrame = cv2.absdiff(grayFrame, cv2.convertScaleAbs(avg))
         # cv2.imshow("absdiff", differenceFrame)
         differenceFrame = cv2.GaussianBlur(differenceFrame, (5, 5), 0)
         # cv2.imshow("difference", differenceFrame)
-        diffout = cv2.cvtColor(differenceFrame, cv2.COLOR_GRAY2BGR)
-        # cv2.imshow("diffout", diffout)
+
+# Thresholding using otsu binarization
+
         retval, _ = cv2.threshold(differenceFrame, 0, 255,
                                   cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         ret_array.append(retval)
@@ -291,12 +266,12 @@ while ret:
             ret2, thresholdImage = cv2.threshold(differenceFrame, 
                                                  int(np.mean(ret_array)*0.9),
                                                  255, cv2.THRESH_BINARY)
-            cv2.imshow("1st tthresh",thresholdImage)
+            # cv2.imshow("1st tthresh",thresholdImage)
         else:
             ret2, thresholdImage = cv2.threshold(differenceFrame, 
                                              int(np.mean(ret_array[-10:-1])*0.9),
                                              255, cv2.THRESH_BINARY)
-            cv2.imshow("1st tthresh",thresholdImage)
+            # cv2.imshow("1st tthresh",thresholdImage)
         
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (SMOOTH, SMOOTH))
         # Fill any small holes
@@ -332,15 +307,6 @@ while ret:
         for (i, match) in enumerate(blobs):
             contour, centroid = match
             x, y, w, h = contour
-            c = dict(
-                        frame_no = frame_no,
-                        centre_x = x,
-                        centre_y = y,
-                        width = w,
-                        height = h
-                        )
-            tracked_conts.append(c)
-            
             cv2.rectangle(frame, (x, y), (x + w - 1, y + h - 1), (50,205,50), 2)
             cv2.circle(frame, centroid, 2, (255, 0, 255), -1)
         
@@ -370,9 +336,8 @@ while ret:
             break
     else:
         break
-# print(car_counter.vehicle_RHS)
-# print(tracked_blobs)
-# print(tracked_conts)
+print(car_counter.vehicle_RHS)
+
 cv2.destroyAllWindows()
 cap.release()
 

@@ -27,13 +27,13 @@ def time_cal(total):
 #     total[i] = int(input("Enter initial no of vehicle in " + str(i) + " light: "))
 #     if(total[i]>200):
 #         total[i] = 200
-total[0] = random.randint(25,200)
+total[0] = 80
 print("Traffic in Road[0] is: " + str(total[0]))
-total[1] = random.randint(25,200)
+total[1] = 121
 print("Traffic in Road[1] is: " + str(total[1]))
-total[2] = random.randint(25,200)
+total[2] = 45
 print("Traffic in Road[2] is: " + str(total[2]))
-total[3] = random.randint(25,200)
+total[3] = 169
 print("Traffic in Road[3] is: " + str(total[3]))
 
 def is_heavy(i):
@@ -62,22 +62,22 @@ def car_dec(active):
 
 dynamic = time[0:4].copy()
 
-for i in range(0,4):                       #to be while for infinite loop
-    print("\nRoad " + str(active) + " has " + is_heavy(active), end="\n")
-    print("Light " + str(active) + " is green for " + str(time[active]) + "seconds", end="\n")
-    for j in range(0,4):
-        if(active!=j):
-            print("Light " + str(j) + " is red", end="\n")
-    while time[active]>0:
-        car_dec(active)
-        time_dec(active)
-        print("\r" + "Time Left: "+ str(time[active]) + " Old Cars Left: "+ str(old_car[active]), end = "")
-        tm.sleep(1)
-    print("\nLight " + str(active) + " is red", end="\n")
-    if active == 3:
-        active = 0
-    else:
-        active += 1
+# for i in range(0,4):                       #to be while for infinite loop
+#     print("\nRoad " + str(active) + " has " + is_heavy(active), end="\n")
+#     print("Light " + str(active) + " is green for " + str(time[active]) + "seconds", end="\n")
+#     for j in range(0,4):
+#         if(active!=j):
+#             print("Light " + str(j) + " is red", end="\n")
+#     while time[active]>0:
+#         car_dec(active)
+#         time_dec(active)
+#         print("\r" + "Time Left: "+ str(time[active]) + " Old Cars Left: "+ str(old_car[active]), end = "")
+#         tm.sleep(1)
+#     print("\nLight " + str(active) + " is red", end="\n")
+#     if active == 3:
+#         active = 0
+#     else:
+#         active += 1
 old_car = 0
 def insert_data_labels(bars):
 	for bar in bars:
@@ -98,28 +98,32 @@ st = ax.bar(indx-bar/2, static, bar, label = "Static timing")
 dy = ax.bar(indx+bar/2, dynamic, bar, label = "Dynamic timing")
 ax.set_xticks(indx + bar / 2)
 ax.set_xticklabels(roads)
+ax.set_ylabel('Time of green light')
 ax.legend()
 
 insert_data_labels(st)
 insert_data_labels(dy)
 
 plt.show()
+
 remaining = []
 for i in range(0,4):
-    if total[i] > 140:
+    if total[i] > 150:
         remaining.append(total[i]%150)           
-    elif total[i] > 70:
+    elif total[i] > 120 and total[i]  < 140:
         remaining.append(total[i]%120)       
     else:
-        remaining.append(total[i]%90)
+        remaining.append(0)
 print("After one complete cycle\n")
 indx = np.arange(4)
 bar = 0.25
 fig, ax = plt.subplots()
 st = ax.bar(indx-bar/2, remaining, bar, label = "Static timing")
 dy = ax.bar(indx+bar/2, old_car, bar, label = "Dynamic timing")
+ax.set_title("Vehicles Remaining After 1st Cycle")
 ax.set_xticks(indx + bar / 2)
 ax.set_xticklabels(roads)
+ax.set_ylabel('Number of cars left')
 ax.legend()
 
 insert_data_labels(st)

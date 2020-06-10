@@ -250,7 +250,7 @@ while ret:
 # Foreground extraction
         
         differenceFrame = cv2.GaussianBlur(grayFrame, (5, 5), 0)
-        cv2.imshow("difference", differenceFrame)
+        # cv2.imshow("difference", differenceFrame)
         differenceFrame = cv2.absdiff(grayFrame, cv2.convertScaleAbs(avg))
         # cv2.imshow("absdiff", differenceFrame)
         differenceFrame = cv2.GaussianBlur(differenceFrame, (5, 5), 0)
